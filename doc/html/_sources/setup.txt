@@ -42,8 +42,8 @@ Quick Install
    :file:`config.inc.php` is still a quick way to get started and needed for
    some advanced features.
 
-Manualy creating file
----------------------
+Manually creating the file
+--------------------------
 
 To manually create the file, simply use your text editor to create the
 file :file:`config.inc.php` (you can copy :file:`config.sample.inc.php` to get
@@ -58,7 +58,8 @@ simple configuration may look like this:
 .. code-block:: php
 
     <?php
-    $cfg['blowfish_secret'] = 'ba17c1ec07d65003';  // use here a value of your choice
+    // use here a value of your choice at least 32 chars long
+    $cfg['blowfish_secret'] = '1{dd0`<Q),5XP_:R9UK%%8\"EEcyH#{o';
 
     $i=0;
     $i++;
@@ -88,47 +89,14 @@ For a full explanation of possible configuration values, see the
 Using Setup script
 ------------------
 
-Instead of manually editing :file:`config.inc.php`, you can use the `Setup
-Script <setup/>`_. First you must manually create a folder ``config``
-in the phpMyAdmin directory. This is a security measure. On a
-Linux/Unix system you can use the following commands:
+Instead of manually editing :file:`config.inc.php`, you can use phpMyAdmin's
+setup feature. The file can be generated using the setup and you can download it
+for upload to the server.
 
-.. code-block:: sh
-
-    cd phpMyAdmin
-    mkdir config                        # create directory for saving
-    chmod o+rw config                   # give it world writable permissions
-
-And to edit an existing configuration, copy it over first:
-
-.. code-block:: sh
-
-    cp config.inc.php config/           # copy current configuration for editing
-    chmod o+w config/config.inc.php     # give it world writable permissions
-
-On other platforms, simply create the folder and ensure that your web
-server has read and write access to it. :ref:`faq1_26` can help with
-this.
-
-Next, open ``setup/`` in your browser. Note that **changes are
-not saved to disk until explicitly choose ``Save``** from the
-*Configuration* area of the screen. Normally the script saves the new
-:file:`config.inc.php` to the ``config/`` directory, but if the webserver does
-not have the proper permissions you may see the error "Cannot load or
-save configuration." Ensure that the ``config/`` directory exists and
-has the proper permissions - or use the ``Download`` link to save the
-config file locally and upload (via FTP or some similar means) to the
-proper location.
-
-Once the file has been saved, it must be moved out of the ``config/``
-directory and the permissions must be reset, again as a security
-measure:
-
-.. code-block:: sh
-
-    mv config/config.inc.php .         # move file to current directory
-    chmod o-rw config.inc.php          # remove world read and write permissions
-    rm -rf config                      # remove not needed directory
+Next, open your browser and visit the location where you installed phpMyAdmin,
+with the ``/setup`` suffix. The changes are not saved to the server, you need to
+use the :guilabel:`Download` button to save them to your computer and then upload
+to the server.
 
 Now the file is ready to be used. You can choose to review or edit the
 file with your favorite editor, if you prefer to set some advanced
@@ -367,35 +335,6 @@ Config authentication mode
   incoming HTTP requests at one’s router or firewall will suffice (both
   of which are beyond the scope of this manual but easily searchable
   with Google).
-
-.. index:: pair: Swekey; Authentication mode
-
-.. _swekey:
-
-Swekey authentication mode
---------------------------
-
-The Swekey is a low cost authentication USB key that can be used in
-web applications. When Swekey authentication is activated, phpMyAdmin
-requires the users's Swekey to be plugged before entering the login
-page (currently supported for cookie authentication mode only). Swekey
-Authentication is disabled by default. To enable it, add the following
-line to :file:`config.inc.php`:
-
-.. code-block:: php
-
-    $cfg['Servers'][$i]['auth_swekey_config'] = '/etc/swekey.conf';
-
-You then have to create the ``swekey.conf`` file that will associate
-each user with their Swekey Id. It is important to place this file
-outside of your web server's document root (in the example, it is
-located in ``/etc``). A self documented sample file is provided in the
-``examples`` directory. Feel free to use it with your own users'
-information. If you want to purchase a Swekey please visit
-`http://phpmyadmin.net/auth\_key <http://phpmyadmin.net/auth_key>`_
-since this link provides funding for phpMyAdmin.
-
-.. seealso:: :config:option:`$cfg['Servers'][$i]['auth_swekey_config']`
 
 Securing your phpMyAdmin installation
 +++++++++++++++++++++++++++++++++++++

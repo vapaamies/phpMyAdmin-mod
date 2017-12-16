@@ -267,7 +267,7 @@ if ($server > 0 && $GLOBALS['cfg']['ShowServerInfo']) {
     echo ' </div>';
 }
 
-if ($GLOBALS['cfg']['ShowServerInfo'] || $GLOBALS['cfg']['ShowPhpInfo']) {
+if ($GLOBALS['cfg']['ShowServerInfo']) {
     echo '<div class="group">';
     echo '<h2>' . __('Web server') . '</h2>';
     echo '<ul>';
@@ -298,15 +298,6 @@ if ($GLOBALS['cfg']['ShowServerInfo'] || $GLOBALS['cfg']['ShowPhpInfo']) {
         }
     }
 
-    if ($cfg['ShowPhpInfo']) {
-        PMA_printListItem(
-            __('Show PHP information'),
-            'li_phpinfo',
-            'phpinfo.php?' . $common_url_query,
-            null,
-            '_blank'
-        );
-    }
     echo '  </ul>';
     echo ' </div>';
 }
@@ -315,7 +306,7 @@ echo '<div class="group pmagroup">';
 echo '<h2>phpMyAdmin</h2>';
 echo '<ul>';
 $class = null;
-// We rely on CSP to allow access to http://www.phpmyadmin.net, but IE lacks
+// We rely on CSP to allow access to https://www.phpmyadmin.net, but IE lacks
 // support here and does not allow request to http once using https.
 if ($GLOBALS['cfg']['VersionCheck']
     && (! $GLOBALS['PMA_Config']->get('is_https') || PMA_USR_BROWSER_AGENT != 'IE')
@@ -341,7 +332,7 @@ PMA_printListItem(
 PMA_printListItem(
     __('Wiki'),
     'li_pma_wiki',
-    PMA_linkURL('http://wiki.phpmyadmin.net/'),
+    PMA_linkURL('https://wiki.phpmyadmin.net/'),
     null,
     '_blank'
 );
@@ -350,21 +341,21 @@ PMA_printListItem(
 PMA_printListItem(
     __('Official Homepage'),
     'li_pma_homepage',
-    PMA_linkURL('http://www.phpMyAdmin.net/'),
+    PMA_linkURL('http://www.phpmyadmin.net/'),
     null,
     '_blank'
 );
 PMA_printListItem(
     __('Contribute'),
     'li_pma_contribute',
-    PMA_linkURL('http://www.phpmyadmin.net/home_page/improve.php'),
+    PMA_linkURL('https://www.phpmyadmin.net/home_page/improve.php'),
     null,
     '_blank'
 );
 PMA_printListItem(
     __('Get support'),
     'li_pma_support',
-    PMA_linkURL('http://www.phpmyadmin.net/home_page/support.php'),
+    PMA_linkURL('https://www.phpmyadmin.net/home_page/support.php'),
     null,
     '_blank'
 );
@@ -445,13 +436,22 @@ if ($GLOBALS['cfg']['LoginCookieStore'] != 0
 /**
  * Check if user does not have defined blowfish secret and it is being used.
  */
-if (! empty($_SESSION['auto_blowfish_secret'])
-    && empty($GLOBALS['cfg']['blowfish_secret'])
-) {
-    trigger_error(
-        __('The configuration file now needs a secret passphrase (blowfish_secret).'),
-        E_USER_WARNING
-    );
+if (! empty($_SESSION['encryption_key'])) {
+    if (empty($GLOBALS['cfg']['blowfish_secret'])) {
+        trigger_error(
+            __(
+                'The configuration file now needs a secret passphrase (blowfish_secret).'
+            ),
+            E_USER_WARNING
+        );
+    } elseif (strlen($GLOBALS['cfg']['blowfish_secret']) < 32) {
+        trigger_error(
+            __(
+                'The secret passphrase in configuration (blowfish_secret) is too short.'
+            ),
+            E_USER_WARNING
+        );
+    }
 }
 
 /**
@@ -563,7 +563,7 @@ if (file_exists('libraries/language_stats.inc.php')) {
         && $GLOBALS['language_stats'][$lang] < $cfg['TranslationWarningThreshold']
     ) {
         trigger_error(
-            'You are using an incomplete translation, please help to make it better by [a@http://www.phpmyadmin.net/home_page/improve.php#translate@_blank]contributing[/a].',
+            'You are using an incomplete translation, please help to make it better by [a@https://www.phpmyadmin.net/home_page/improve.php#translate@_blank]contributing[/a].',
             E_USER_NOTICE
         );
     }
@@ -596,6 +596,9 @@ function PMA_printListItem($name, $id = null, $url = null, $mysql_help_page = nu
         echo '<a href="' . $url . '"';
         if (null !== $target) {
             echo ' target="' . $target . '"';
+            if ($target == '_blank') {
+                echo ' rel="noopener noreferrer"';
+            }
         }
         if (null != $a_id) {
             echo ' id="' . $a_id .'"';
