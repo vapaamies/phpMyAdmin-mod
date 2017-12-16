@@ -201,7 +201,7 @@ function drawChart() {
 
     var columnNames = [];
     $('select[name="chartXAxis"] option').each(function() {
-        columnNames.push($(this).text());
+        columnNames.push(escapeHtml($(this).text()));
     });
     try {
         currentChart = PMA_queryChart(chart_data, columnNames, currentSettings);
@@ -260,7 +260,7 @@ function PMA_queryChart(data, columnNames, settings) {
         },
         axes : {
             xaxis : {
-                label : settings.xaxisLabel
+                label : escapeHtml(settings.xaxisLabel)
             },
             yaxis : {
                 label : settings.yaxisLabel
