@@ -305,6 +305,7 @@ EOT;
     private function _getEnumSetInputBox($column_index, $criteriaValues,
         $column_type, $column_id, $in_zoom_search_edit = false
     ) {
+        $column_type = htmlspecialchars($column_type);
         $html_output = '';
         $value = explode(
             ', ',
@@ -930,7 +931,9 @@ EOT;
             $html_output .= '<th>'
                 . htmlspecialchars($this->_columnNames[$column_index]) . '</th>';
             $properties = $this->getColumnProperties($column_index, $column_index);
-            $html_output .= '<td>' . $properties['type'] . '</td>';
+            $html_output .= '<td>'
+                . htmlspecialchars($properties['type'])
+                . '</td>';
             $html_output .= '<td>' . $properties['collation'] . '</td>';
             $html_output .= '<td>' . $properties['func'] . '</td>';
             $html_output .= '<td>' . $properties['value'] . '</td>';
@@ -939,11 +942,13 @@ EOT;
             $html_output .= '<tr><td>';
             $html_output .= '<input type="hidden"'
                 . ' name="criteriaColumnNames[' . $column_index . ']"'
-                . ' value="' . htmlspecialchars($this->_columnNames[$column_index])
+                . ' value="'
+                . htmlspecialchars($this->_columnNames[$column_index])
                 . '"/>';
             $html_output .= '<input type="hidden"'
                 . ' name="criteriaColumnTypes[' . $column_index . ']"'
-                . ' value="' . $this->_columnTypes[$column_index] . '"/>';
+                . ' value="'
+                . htmlspecialchars($this->_columnTypes[$column_index]) . '"/>';
             $html_output .= '<input type="hidden"'
                 . ' name="criteriaColumnCollations[' . $column_index . ']"'
                 . ' value="' . $this->_columnCollations[$column_index] . '"/>';
@@ -1010,21 +1015,21 @@ EOT;
                 $value[$i] = $properties['value'];
             }
             //Column type
-            $html_output .= '<td>' . (isset($type[$i]) ? $type[$i] : '') . '</td>';
+            $html_output .= '<td>' . (isset($type[$i]) ? htmlspecialchars($type[$i]) : '') . '</td>';
             //Column Collation
             $html_output .= '<td>' . (isset($collation[$i]) ? $collation[$i] : '')
                 . '</td>';
             //Select options for column operators
             $html_output .= '<td>' . (isset($func[$i]) ? $func[$i] : '') . '</td>';
             //Inputbox for search criteria value
-            $html_output .= '<td>' . (isset($value[$i]) ? $value[$i] : '') . '</td>';
+            $html_output .= '<td>' . (isset($value[$i]) ? htmlspecialchars($value[$i]) : '') . '</td>';
             $html_output .= '</tr>';
             //Displays hidden fields
             $html_output .= '<tr><td>';
             $html_output .= '<input type="hidden" name="criteriaColumnTypes[' . $i . ']"'
                 . ' id="types_' . $i . '" ';
             if (isset($_POST['criteriaColumnTypes'][$i])) {
-                $html_output .= 'value="' . $_POST['criteriaColumnTypes'][$i] . '" ';
+                $html_output .= 'value="' . htmlspecialchars($_POST['criteriaColumnTypes'][$i]) . '" ';
             }
             $html_output .= '/>';
             $html_output .= '<input type="hidden" name="criteriaColumnCollations['
@@ -1173,7 +1178,7 @@ EOT;
             $html_output .= '<center><a href="#" onclick="displayHelp();">'
                 . __('How to use') . '</a></center>';
             $html_output .= '<div id="querydata" style="display:none">'
-                . json_encode($data) . '</div>';
+                . htmlspecialchars(json_encode($data)) . '</div>';
             $html_output .= '<div id="querychart"></div>';
             $html_output .= '<button class="button-reset">'
                 . __('Reset zoom') . '</button>';

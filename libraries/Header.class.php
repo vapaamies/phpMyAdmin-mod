@@ -145,7 +145,16 @@ class PMA_Header
      */
     private function _addDefaultScripts()
     {
+        // Localised strings
+        $params = array('lang' => $GLOBALS['lang']);
+        if (isset($GLOBALS['db'])) {
+            $params['db'] = $GLOBALS['db'];
+        }
+
         $this->_scripts->addFile('jquery/jquery-1.8.3.min.js');
+        $this->_scripts->addFile(
+            'whitelist.php' . PMA_generate_common_url($params), false, true
+        );
         $this->_scripts->addFile('ajax.js');
         $this->_scripts->addFile('keyhandler.js');
         $this->_scripts->addFile('jquery/jquery-ui-1.9.2.custom.min.js');
@@ -168,11 +177,6 @@ class PMA_Header
         // Here would not be a good place to add CodeMirror because
         // the user preferences have not been merged at this point
 
-        // Localised strings
-        $params = array('lang' => $GLOBALS['lang']);
-        if (isset($GLOBALS['db'])) {
-            $params['db'] = $GLOBALS['db'];
-        }
         $this->_scripts->addFile('messages.php' . PMA_generate_common_url($params));
         // Append the theme id to this url to invalidate
         // the cache on a theme change. Though this might be
@@ -461,40 +465,55 @@ class PMA_Header
                 );
             }
             header(
-                "X-Content-Security-Policy: default-src 'self' "
+                "Content-Security-Policy: default-src 'self' "
                 . $GLOBALS['cfg']['CSPAllow'] . ';'
-                . "options inline-script eval-script;"
+                . "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+                . $GLOBALS['cfg']['CSPAllow'] . ';'
+                . ";"
+                . "style-src 'self' 'unsafe-inline' "
+                . $GLOBALS['cfg']['CSPAllow']
+                . ";"
+                . "referrer no-referrer;"
                 . "img-src 'self' data: "
                 . $GLOBALS['cfg']['CSPAllow']
                 . ($https ? "" : $mapTilesUrls)
                 . ";"
             );
-            if (PMA_USR_BROWSER_AGENT == 'SAFARI'
-                && PMA_USR_BROWSER_VER < '6.0.0'
-            ) {
-                header(
-                    "X-WebKit-CSP: allow 'self' "
-                    . $GLOBALS['cfg']['CSPAllow'] . ';'
-                    . "options inline-script eval-script;"
-                    . "img-src 'self' data: "
-                    . $GLOBALS['cfg']['CSPAllow']
-                    . ($https ? "" : $mapTilesUrls)
-                    . ";"
-                );
-            } else {
-                header(
-                    "X-WebKit-CSP: default-src 'self' "
-                    . $GLOBALS['cfg']['CSPAllow'] . ';'
-                    . "script-src 'self' "
-                    . $GLOBALS['cfg']['CSPAllow']
-                    . " 'unsafe-inline' 'unsafe-eval';"
-                    . "style-src 'self' 'unsafe-inline';"
-                    . "img-src 'self' data: "
-                    . $GLOBALS['cfg']['CSPAllow']
-                    . ($https ? "" : $mapTilesUrls)
-                    . ";"
-                );
-            }
+            header(
+                "X-Content-Security-Policy: default-src 'self' "
+                . $GLOBALS['cfg']['CSPAllow'] . ';'
+                . "options inline-script eval-script;"
+                . "img-src 'self' data: "
+                . "referrer no-referrer;"
+                . $GLOBALS['cfg']['CSPAllow']
+                . ($https ? "" : $mapTilesUrls)
+                . ";"
+            );
+            header(
+                "X-WebKit-CSP: default-src 'self' "
+                . $GLOBALS['cfg']['CSPAllow'] . ';'
+                . "script-src 'self' "
+                . $GLOBALS['cfg']['CSPAllow']
+                . " 'unsafe-inline' 'unsafe-eval';"
+                . "style-src 'self' 'unsafe-inline' "
+                . ';'
+                . "referrer no-referrer;"
+                . "img-src 'self' data: "
+                . $GLOBALS['cfg']['CSPAllow']
+                . ($https ? "" : $mapTilesUrls)
+                . ";"
+            );
+
+            header(
+                "X-Content-Security-Policy: default-src 'self' "
+                . $GLOBALS['cfg']['CSPAllow'] . ';'
+                . "options inline-script eval-script;"
+                . "referrer no-referrer;"
+                . "img-src 'self' data: "
+                . $GLOBALS['cfg']['CSPAllow']
+                . ($https ? "" : $mapTilesUrls)
+                . ";"
+            );
         }
         PMA_noCacheHeader();
         if (! defined('IS_TRANSFORMATION_WRAPPER') && ! defined('TESTSUITE')) {
@@ -528,6 +547,7 @@ class PMA_Header
     private function _getMetaTags()
     {
         $retval = '<meta charset="utf-8"/>';
+        $retval .= '<meta name="referrer" content="no-referrer"/>';
         $retval .= '<meta name="robots" content="noindex,nofollow"/>';
         $retval .= '<meta http-equiv="X-UA-Compatible" content="IE=Edge">';
         if (! $GLOBALS['cfg']['AllowThirdPartyFraming']) {

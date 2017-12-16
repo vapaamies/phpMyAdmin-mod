@@ -9,6 +9,8 @@ if (! defined('PHPMYADMIN')) {
     exit;
 }
 
+require_once './libraries/Util.class.php';
+
 /**
  * Output buffering wrapper class
  *
@@ -94,7 +96,7 @@ class PMA_OutputBuffering
             if (! defined('TESTSUITE')) {
                 header('X-ob_mode: ' . $this->_mode);
             }
-            register_shutdown_function('PMA_OutputBuffering::stop');
+            register_shutdown_function(array('PMA_OutputBuffering', 'stop'));
             $this->_on = true;
         }
     }

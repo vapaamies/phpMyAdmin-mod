@@ -2594,7 +2594,7 @@ msgid "Relational key"
 msgstr "Clave relacional"
 
 # Display option apparently related to
-# http://www.phpmyadmin.net/documentation/#relation
+# https://www.phpmyadmin.net/documentation/#relation
 #: libraries/DisplayResults.class.php:1647
 msgid "Relational display column"
 msgstr "Mostrar columna de relación"
@@ -3929,7 +3929,7 @@ msgid "Text"
 msgstr "Texto"
 
 # Used for
-# http://www.phpmyadmin.net/documentation/Documentation.html#cfg_NavigationBarIconic
+# https://www.phpmyadmin.net/documentation/Documentation.html#cfg_NavigationBarIconic
 #: libraries/config.values.php:51 libraries/config.values.php:58
 #: libraries/config.values.php:66 libraries/config.values.php:71
 msgid "Both"
@@ -3962,12 +3962,12 @@ msgid "Disabled"
 msgstr "Deshabilitado"
 
 # Used for
-# http://www.phpmyadmin.net/documentation/Documentation.html#cfg_InitialSlidersState
+# https://www.phpmyadmin.net/documentation/Documentation.html#cfg_InitialSlidersState
 #: libraries/config.values.php:105
 msgid "Open"
 msgstr "Desplegados"
 
-# http://www.phpmyadmin.net/documentation/Documentation.html#cfg_InitialSlidersState
+# https://www.phpmyadmin.net/documentation/Documentation.html#cfg_InitialSlidersState
 #: libraries/config.values.php:106
 msgid "Closed"
 msgstr "Ocultos"
@@ -5571,10 +5571,10 @@ msgstr "Tipo de autenticación"
 
 #: libraries/config/messages.inc.php:380
 msgid ""
-"Leave blank for no [a@http://wiki.phpmyadmin.net/pma/bookmark]bookmark[/a] "
+"Leave blank for no [a@https://wiki.phpmyadmin.net/pma/bookmark]bookmark[/a] "
 "support, suggested: [kbd]pma__bookmark[/kbd]"
 msgstr ""
-"Deje en blanco para no dar soporte [a@http://wiki.phpmyadmin.net/pma/"
+"Deje en blanco para no dar soporte [a@https://wiki.phpmyadmin.net/pma/"
 "bookmark]bookmark[/a], de manera predeterminada: [kbd]pma_bookmark[/kbd]"
 
 #: libraries/config/messages.inc.php:381
@@ -5618,7 +5618,7 @@ msgstr "Controlar la contraseña del usuario"
 #: libraries/config/messages.inc.php:389
 msgid ""
 "A special MySQL user configured with limited permissions, more information "
-"available on [a@http://wiki.phpmyadmin.net/pma/controluser]wiki[/a]"
+"available on [a@https://wiki.phpmyadmin.net/pma/controluser]wiki[/a]"
 msgstr ""
 "Un usuario MySQL especial configurado con permisos limitados, más "
 "información disponible en [a@http://wiki.cihar.com/pma/controluser]wiki[/a]"
@@ -5798,10 +5798,10 @@ msgstr "Tabla recientemente utilizada"
 
 #: libraries/config/messages.inc.php:422
 msgid ""
-"Leave blank for no [a@http://wiki.phpmyadmin.net/pma/relation]relation-"
+"Leave blank for no [a@https://wiki.phpmyadmin.net/pma/relation]relation-"
 "links[/a] support, suggested: [kbd]pma__relation[/kbd]"
 msgstr ""
-"Deje en blanco para no dar soporte [a@http://wiki.phpmyadmin.net/pma/"
+"Deje en blanco para no dar soporte [a@https://wiki.phpmyadmin.net/pma/"
 "relation]relation-links[/a], de manera predeterminada: [kbd]pma__relation[/"
 "kbd]"
 
@@ -5819,7 +5819,7 @@ msgstr "Comando SHOW DATABASES"
 
 #: libraries/config/messages.inc.php:426
 msgid ""
-"See [a@http://wiki.phpmyadmin.net/pma/auth_types#signon]authentication "
+"See [a@https://wiki.phpmyadmin.net/pma/auth_types#signon]authentication "
 "types[/a] for an example"
 msgstr ""
 "Ver [a@http://wiki.cihar.com/pma/auth_types#signon]tipos de autenticación[/"
@@ -6322,7 +6322,7 @@ msgid "HTTP authentication"
 msgstr "Autenticación por HTTP"
 
 # Description of signon value for configuration described at
-# http://www.phpmyadmin.net/documentation/Documentation.html#cfg_Servers_auth_type
+# https://www.phpmyadmin.net/documentation/Documentation.html#cfg_Servers_auth_type
 #: libraries/config/setup.forms.php:51
 msgid "Signon authentication"
 msgstr "Autenticación por sesión"

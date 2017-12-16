@@ -143,7 +143,7 @@ require './libraries/Table.class.php';
  */
 require './libraries/Types.class.php';
 
-if (! defined('PMA_MINIMUM_COMMON')) {
+if (! defined('PMA_MINIMUM_COMMON') || defined('PMA_SETUP')) {
     /**
      * common functions
      */
@@ -233,7 +233,7 @@ unset($key, $value, $variables_whitelist);
  * so we now check if a subform is submitted
  */
 $__redirect = null;
-if (isset($_POST['usesubform'])) {
+if (isset($_POST['usesubform']) && ! defined('PMA_MINIMUM_COMMON')) {
     // if a subform is present and should be used
     // the rest of the form is deprecated
     $subform_id = key($_POST['usesubform']);
@@ -343,6 +343,7 @@ if (isset($_COOKIE)
 if ($GLOBALS['PMA_Config']->get('ForceSSL')
     && ! $GLOBALS['PMA_Config']->get('is_https')
 ) {
+    require './libraries/select_lang.lib.php';
     // grab SSL URL
     $url = $GLOBALS['PMA_Config']->getSSLUri();
     // Actually redirect
@@ -396,7 +397,6 @@ $goto_whitelist = array(
     'index.php',
     'pdf_pages.php',
     'pdf_schema.php',
-    //'phpinfo.php',
     'querywindow.php',
     'server_binlog.php',
     'server_collations.php',
@@ -478,7 +478,7 @@ if (PMA_checkPageValidity($_REQUEST['back'], $goto_whitelist)) {
  */
 $token_mismatch = true;
 if (PMA_isValid($_REQUEST['token'])) {
-    $token_mismatch = ($_SESSION[' PMA_token '] != $_REQUEST['token']);
+    $token_mismatch = ! hash_equals($_SESSION[' PMA_token '], $_REQUEST['token']);
 }
 
 if ($token_mismatch) {
@@ -499,7 +499,9 @@ if ($token_mismatch) {
         /* Needed to send the correct reply */
         'ajax_request',
         /* Permit to log out even if there is a token mismatch */
-        'old_usr'
+        'old_usr',
+        /* url.php */
+        'url',
     );
     /**
      * Allow changing themes in test/theme.php
@@ -859,6 +861,9 @@ if (! defined('PMA_MINIMUM_COMMON')) {
                 . ' ' . $cfg['Server']['auth_type']
             );
         }
+        if (isset($_REQUEST['pma_password']) && strlen($_REQUEST['pma_password']) > 256) {
+            $_REQUEST['pma_password'] = substr($_REQUEST['pma_password'], 0, 256);
+        }
         include_once  './libraries/plugins/auth/' . $auth_class . '.class.php';
         // todo: add plugin manager
         $plugin_manager = null;
@@ -966,6 +971,8 @@ if (! defined('PMA_MINIMUM_COMMON')) {
         if (! $controllink) {
             $controllink = $userlink;
         }
+
+        $auth_plugin->storeUserCredentials();
 
         /* Log success */
         PMA_log_user($cfg['Server']['user']);

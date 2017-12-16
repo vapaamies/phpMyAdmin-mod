@@ -552,7 +552,7 @@ class PMA_Util
         /* Check if we have built local documentation */
         if (defined('TESTSUITE')) {
             /* Provide consistent URL for testsuite */
-            return PMA_linkURL('http://docs.phpmyadmin.net/en/latest/' . $url);
+            return PMA_linkURL('https://docs.phpmyadmin.net/en/latest/' . $url);
         } else if (file_exists('doc/html/index.html')) {
             if (defined('PMA_SETUP')) {
                 return '../doc/html/' . $url;
@@ -561,7 +561,7 @@ class PMA_Util
             }
         } else {
             /* TODO: Should link to correct branch for released versions */
-            return PMA_linkURL('http://docs.phpmyadmin.net/en/latest/' . $url);
+            return PMA_linkURL('https://docs.phpmyadmin.net/en/latest/' . $url);
         }
     }
 
@@ -2655,7 +2655,7 @@ class PMA_Util
             $dir .= '/';
         }
 
-        return str_replace('%u', $GLOBALS['cfg']['Server']['user'], $dir);
+        return str_replace('%u', PMA_securePath($GLOBALS['cfg']['Server']['user']), $dir);
     }
 
     /**
@@ -3146,8 +3146,11 @@ class PMA_Util
         // for the case ENUM('&#8211;','&ldquo;')
         $displayed_type = htmlspecialchars($printtype);
         if (strlen($printtype) > $GLOBALS['cfg']['LimitChars']) {
-            $displayed_type = '<abbr title="' . $printtype . '">';
-            $displayed_type .= substr($printtype, 0, $GLOBALS['cfg']['LimitChars']);
+            $displayed_type = '<abbr title="'
+                . htmlspecialchars($printtype) . '">';
+            $displayed_type .= htmlspecialchars(
+                substr($printtype, 0, $GLOBALS['cfg']['LimitChars'])
+            );
             $displayed_type .= '</abbr>';
         }
 
@@ -3921,7 +3924,15 @@ class PMA_Util
         if ($db !== null) {
             // need to escape wildcards in db and table names, see bug #3518484
             $db = str_replace(array('%', '_'), array('\%', '\_'), $db);
-            $query .= " AND TABLE_SCHEMA='%s'";
+            /*
+             * This is to take into account a wildcard db privilege
+             * so we replace % by .* and _ by . to be able to compare
+             * with REGEXP.
+             *
+             * Also, we need to double the inner % to please sprintf().
+             */
+            $query .= " AND '%s' REGEXP"
+                . " REPLACE(REPLACE(TABLE_SCHEMA, '_', '.'), '%%', '.*')";
             $schema_privileges = PMA_DBI_fetch_value(
                 sprintf(
                     $query,
@@ -4134,6 +4145,95 @@ class PMA_Util
                 . ': '
                 . PMA_Util::localisedDate(strtotime($table['Check_time']));
         }
+    }
+
+    /**
+     * Returns the version and date of the latest phpMyAdmin version compatible
+     * with avilable PHP and MySQL versions
+     *
+     * @param array $releases array of information related to each version
+     *
+     * @return array containing the version and date of latest compatibel version
+     */
+    public static function getLatestCompatibleVersion($releases)
+    {
+        foreach ($releases as $release) {
+            $phpVersions = $release->php_versions;
+            $phpConditions = explode(",", $phpVersions);
+            foreach ($phpConditions as $phpCondition) {
+                if (! self::evaluateVersionCondition("PHP", $phpCondition)) {
+                    continue 2;
+                }
+            }
+
+            // We evalute MySQL version constraint if there are only
+            // one server configured.
+            if (count($GLOBALS['cfg']['Servers']) == 1) {
+                $mysqlVersions = $release->mysql_versions;
+                $mysqlConditions = explode(",", $mysqlVersions);
+                foreach ($mysqlConditions as $mysqlCondition) {
+                    if (! self::evaluateVersionCondition('MySQL', $mysqlCondition)) {
+                        continue 2;
+                    }
+                }
+            }
+
+            return array(
+                'version' => $release->version,
+                'date' => $release->date,
+            );
+        }
+
+        // no compatible version
+        return null;
+    }
+
+    /**
+     * Checks whether PHP or MySQL version meets supplied version condition
+     *
+     * @param string $type      PHP or MySQL
+     * @param string $condition version condition
+     *
+     * @return boolean whether the condition is met
+     */
+    public static function evaluateVersionCondition($type, $condition)
+    {
+        $operator = null;
+        $operators = array("<=", ">=", "!=", "<>", "<", ">", "="); // preserve order
+        foreach ($operators as $oneOperator) {
+            if (strpos($condition, $oneOperator) === 0) {
+                $operator = $oneOperator;
+                $version = substr($condition, strlen($oneOperator));
+                break;
+            }
+        }
+
+        $myVersion = null;
+        if ($type == 'PHP') {
+            $myVersion = PHP_VERSION;
+        } elseif ($type == 'MySQL') {
+            $myVersion = PMA_Util::cacheGet('PMA_MYSQL_STR_VERSION', true);
+        }
+
+        if ($myVersion != null && $operator != null) {
+            return version_compare($myVersion, $version, $operator);
+        }
+        return false;
+    }
+
+    /**
+     * Converts given (request) paramter to string
+     *
+     * @param mixed $value Value to convert
+     *
+     * @return string
+     */
+    public static function requestString($value)
+    {
+        while (is_array($value) || is_object($value)) {
+            $value = reset($value);
+        }
+        return trim((string)$value);
     }
 }
 ?>

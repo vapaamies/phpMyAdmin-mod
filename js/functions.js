@@ -77,14 +77,31 @@ function suggestPassword(passwd_form)
     // restrict the password to just letters and numbers to avoid problems:
     // "editors and viewers regard the password as multiple words and
     // things like double click no longer work"
-    var pwchars = "abcdefhjmnpqrstuvwxyz23456789ABCDEFGHJKLMNPQRSTUVWYXZ";
+    var pwchars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWYXZ";
     var passwordlength = 16;    // do we want that to be dynamic?  no, keep it simple :)
     var passwd = passwd_form.generated_pw;
+    var randomWords = new Int32Array(passwordlength);
+
     passwd.value = '';
 
-    for (var i = 0; i < passwordlength; i++ ) {
-        passwd.value += pwchars.charAt( Math.floor( Math.random() * pwchars.length ) );
+    // First we're going to try to use a built-in CSPRNG
+    if (window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(randomWords);
     }
+    // Because of course IE calls it msCrypto instead of being standard
+    else if (window.msCrypto && window.msCrypto.getRandomValues) {
+        window.msCrypto.getRandomValues(randomWords);
+    } else {
+        // Fallback to Math.random
+        for (var i = 0; i < passwordlength; i++) {
+            randomWords[i] = Math.floor(Math.random() * pwchars.length);
+        }
+    }
+
+    for (var i = 0; i < passwordlength; i++) {
+        passwd.value += pwchars.charAt(Math.abs(randomWords[i]) % pwchars.length);
+    }
+
     passwd_form.text_pma_pw.value = passwd.value;
     passwd_form.text_pma_pw2.value = passwd.value;
     return true;
@@ -1351,7 +1368,7 @@ AJAX.registerOnload('functions.js', function() {
         var $inner_sql = $(this).parent().prev().find('.inner_sql');
         var old_text = $inner_sql.html();
 
-        var new_content = "<textarea name=\"sql_query_edit\" id=\"sql_query_edit\">" + sql_query + "</textarea>\n";
+        var new_content = "<textarea name=\"sql_query_edit\" id=\"sql_query_edit\">" + escapeHtml(sql_query) + "</textarea>\n";
         new_content += "<input type=\"submit\" id=\"sql_query_edit_save\" class=\"button btnSave\" value=\"" + PMA_messages['strGo'] + "\"/>\n";
         new_content += "<input type=\"button\" id=\"sql_query_edit_discard\" class=\"button btnDiscard\" value=\"" + PMA_messages['strCancel'] + "\"/>\n";
         var $editor_area = $('div#inline_editor');
@@ -2540,7 +2557,7 @@ AJAX.registerOnload('functions.js', function() {
         } else {
             var title = PMA_messages['enum_columnVals'].replace(
                 /%s/,
-                '"' + decodeURIComponent(colname) + '"'
+                '"' + escapeHtml(decodeURIComponent(colname)) + '"'
             );
         }
         // Get the values as a string
@@ -3167,7 +3184,16 @@ AJAX.registerOnload('functions.js', function() {
      * Load version information asynchronously.
      */
     if ($('li.jsversioncheck').length > 0) {
-        $.getJSON('version_check.php', {}, PMA_current_version);
+        $.ajax({
+            dataType: "json",
+            url: 'version_check.php',
+            method: "POST",
+            data: {
+                "server": PMA_commonParams.get('server'),
+                "token": PMA_commonParams.get('token'),
+            },
+            success: PMA_current_version
+        });
     }
 
     if ($('#is_git_revision').length > 0) {
@@ -3356,7 +3382,7 @@ AJAX.registerOnload('functions.js', function() {
         var question = PMA_messages.strDropTableStrongWarning + ' ';
         question += $.sprintf(
             PMA_messages.strDoYouReally,
-            'DROP TABLE ' + PMA_commonParams.get('table')
+            'DROP TABLE ' + escapeHtml(PMA_commonParams.get('table'))
         );
 
         $(this).PMA_confirm(question, $(this).attr('href'), function(url) {
@@ -3389,7 +3415,7 @@ AJAX.registerOnload('functions.js', function() {
         var question = PMA_messages.strTruncateTableStrongWarning + ' ';
         question += $.sprintf(
             PMA_messages.strDoYouReally,
-            'TRUNCATE ' + PMA_commonParams.get('table')
+            'TRUNCATE ' + escapeHtml(PMA_commonParams.get('table'))
         );
         $(this).PMA_confirm(question, $(this).attr('href'), function(url) {
             PMA_ajaxShowMessage(PMA_messages['strProcessingRequest']);

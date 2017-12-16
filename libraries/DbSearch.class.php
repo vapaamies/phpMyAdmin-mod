@@ -276,7 +276,7 @@ class PMA_DbSearch
             // Gets the SQL statements
             $newsearchsqls = $this->_getSearchSqls($each_table);
             // Executes the "COUNT" statement
-            $res_cnt = PMA_DBI_fetch_value($newsearchsqls['select_count']);
+            $res_cnt = intval(PMA_DBI_fetch_value($newsearchsqls['select_count']));
             $num_search_result_total += $res_cnt;
             // Gets the result row's HTML for a table
             $html_output .= $this->_getResultsRow(
@@ -339,7 +339,8 @@ class PMA_DbSearch
             $browse_result_path = 'sql.php' . PMA_generate_common_url($this_url_params);
             $html_output .= '<td><a name="browse_search" href="'
                 . $browse_result_path . '" onclick="loadResult(\''
-                . $browse_result_path . '\',\'' . $each_table . '\',\''
+                . $browse_result_path . '\',\''
+                . PMA_escapeJsString(htmlspecialchars($each_table)) . '\',\''
                 . PMA_generate_common_url($GLOBALS['db'], $each_table) . '\''
                 . ');return false;" >'
                 . __('Browse') . '</a></td>';
@@ -348,10 +349,10 @@ class PMA_DbSearch
             $html_output .= '<td><a name="delete_search" href="'
                 . $delete_result_path . '" onclick="deleteResult(\''
                 . $delete_result_path . '\' , \''
-                . sprintf(
+                . PMA_escapeJsString(sprintf(
                     __('Delete the matches for the %s table?'),
                     htmlspecialchars($each_table)
-                )
+                ))
                 . '\');return false;">'
                 . __('Delete') . '</a></td>';
         } else {

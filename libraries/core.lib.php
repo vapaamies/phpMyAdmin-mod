@@ -551,7 +551,7 @@ function PMA_sendHeaderLocation($uri, $use_refresh = false)
         echo '<body>' . "\n";
         echo '<script type="text/javascript">' . "\n";
         echo '//<![CDATA[' . "\n";
-        echo 'document.write(\'<p><a href="' . htmlspecialchars($uri) . '">'
+        echo 'document.write(\'<p><a href="' . PMA_escapeJsString(htmlspecialchars($uri)) . '">'
             . __('Go') . '</a></p>\');' . "\n";
         echo '//]]>' . "\n";
         echo '</script></body></html>' . "\n";
@@ -567,11 +567,6 @@ function PMA_sendHeaderLocation($uri, $use_refresh = false)
         } else {
             session_write_close();
             if (headers_sent()) {
-                if (function_exists('debug_print_backtrace')) {
-                    echo '<pre>';
-                    debug_print_backtrace();
-                    echo '</pre>';
-                }
                 trigger_error(
                     'PMA_sendHeaderLocation called when headers are already sent!',
                     E_USER_ERROR
@@ -752,7 +747,7 @@ function PMA_arrayRemove($path, &$array)
  */
 function PMA_linkURL($url)
 {
-    if (!preg_match('#^https?://#', $url) || defined('PMA_SETUP')) {
+    if (!preg_match('#^https?://#', $url)) {
         return $url;
     } else {
         if (!function_exists('PMA_generate_common_url')) {
@@ -760,7 +755,11 @@ function PMA_linkURL($url)
         }
         $params = array();
         $params['url'] = $url;
-        return './url.php' . PMA_generate_common_url($params);
+        if (defined('PMA_SETUP')) {
+            return '../url.php' . PMA_generate_common_url($params);
+        } else {
+            return './url.php' . PMA_generate_common_url($params);
+        }
     }
 }
 
@@ -796,4 +795,217 @@ function PMA_addJSVar($key, $value, $escape = true)
     PMA_addJSCode(PMA_getJsValue($key, $value, $escape));
 }
 
+/* Compatibility with PHP < 5.6 */
+if(! function_exists('hash_equals')) {
+    function hash_equals($a, $b) {
+        $ret = strlen($a) ^ strlen($b);
+        $ret |= array_sum(unpack("C*", $a ^ $b));
+        return ! $ret;
+    }
+}
+
+/**
+ * Checks whether domain of URL is whitelisted domain or not.
+ * Use only for URLs of external sites.
+ *
+ * @param string $url URL of external site.
+ *
+ * @return boolean.True:if domain of $url is allowed domain, False:otherwise.
+ */
+function PMA_isAllowedDomain($url)
+{
+    $arr = parse_url($url);
+    // We need host to be set
+    if (! isset($arr['host']) || strlen($arr['host']) == 0) {
+        return false;
+    }
+    // We do not want these to be present
+    $blocked = array('user', 'pass', 'port');
+    foreach ($blocked as $part) {
+        if (isset($arr[$part]) && strlen($arr[$part]) != 0) {
+            return false;
+        }
+    }
+    $domain = $arr["host"];
+    $domainWhiteList = array(
+        /* Include current domain */
+        $_SERVER['SERVER_NAME'],
+        /* phpMyAdmin domains */
+        'wiki.phpmyadmin.net', 'www.phpmyadmin.net', 'phpmyadmin.net',
+        'docs.phpmyadmin.net',
+        'demo.phpmyadmin.net',
+        /* mysql.com domains */
+        'dev.mysql.com','bugs.mysql.com',
+        /* mariadb domains */
+        'mariadb.org', 'mariadb.com',
+        /* php.net domains */
+        'php.net',
+        /* sourceforge.net domain */
+        'sourceforge.net',
+        /* Github domains*/
+        'github.com','www.github.com',
+        /* Percona domains */
+        'www.percona.com',
+        /* Following are doubtful ones. */
+        'www.primebase.com','pbxt.blogspot.com',
+        'mysqldatabaseadministration.blogspot.com',
+        /* CVE */
+        'cve.mitre.org',
+    );
+    if (in_array($domain, $domainWhiteList)) {
+        return true;
+    }
+
+    return false;
+}
+/* Compatibility with PHP < 5.1 or PHP without hash extension */
+if (! function_exists('hash_hmac')) {
+    function hash_hmac($algo, $data, $key, $raw_output = false)
+    {
+        $algo = strtolower($algo);
+        $pack = 'H'.strlen($algo('test'));
+        $size = 64;
+        $opad = str_repeat(chr(0x5C), $size);
+        $ipad = str_repeat(chr(0x36), $size);
+
+        if (strlen($key) > $size) {
+            $key = str_pad(pack($pack, $algo($key)), $size, chr(0x00));
+        } else {
+            $key = str_pad($key, $size, chr(0x00));
+        }
+
+        for ($i = 0; $i < strlen($key) - 1; $i++) {
+            $opad[$i] = $opad[$i] ^ $key[$i];
+            $ipad[$i] = $ipad[$i] ^ $key[$i];
+        }
+
+        $output = $algo($opad.pack($pack, $algo($ipad.$data)));
+
+        return ($raw_output) ? pack($pack, $output) : $output;
+    }
+}
+
+/**
+ * Sanitizes MySQL hostname
+ *
+ * * strips p: prefix(es)
+ *
+ * @param string $name User given hostname
+ *
+ * @return string
+ */
+function PMA_sanitizeMySQLHost($name)
+{
+    while (strtolower(substr($name, 0, 2)) == 'p:') {
+        $name = substr($name, 2);
+    }
+
+    return $name;
+}
+
+/**
+ * Sanitizes MySQL username
+ *
+ * * strips part behind null byte
+ *
+ * @param string $name User given username
+ *
+ * @return string
+ */
+function PMA_sanitizeMySQLUser($name)
+{
+    $position = strpos($name, chr(0));
+    if ($position !== false) {
+        return substr($name, 0, $position);
+    }
+    return $name;
+}
+
+/**
+ * Safe unserializer wrapper
+ *
+ * It does not unserialize data containing objects
+ *
+ * @param string $data Data to unserialize
+ *
+ * @return mixed
+ */
+function PMA_safeUnserialize($data)
+{
+    if (! is_string($data)) {
+        return null;
+    }
+
+    /* validate serialized data */
+    $length = strlen($data);
+    $depth = 0;
+    for ($i = 0; $i < $length; $i++) {
+        $value = $data[$i];
+
+        switch ($value)
+        {
+            case '}':
+                /* end of array */
+                if ($depth <= 0) {
+                    return null;
+                }
+                $depth--;
+                break;
+            case 's':
+                /* string */
+                // parse sting length
+                $strlen = intval(substr($data, $i + 2));
+                // string start
+                $i = strpos($data, ':', $i + 2);
+                if ($i === false) {
+                    return null;
+                }
+                // skip string, quotes and ;
+                $i += 2 + $strlen + 1;
+                if ($data[$i] != ';') {
+                    return null;
+                }
+                break;
+
+            case 'b':
+            case 'i':
+            case 'd':
+                /* bool, integer or double */
+                // skip value to sepearator
+                $i = strpos($data, ';', $i);
+                if ($i === false) {
+                    return null;
+                }
+                break;
+            case 'a':
+                /* array */
+                // find array start
+                $i = strpos($data, '{', $i);
+                if ($i === false) {
+                    return null;
+                }
+                // remember nesting
+                $depth++;
+                break;
+            case 'N':
+                /* null */
+                // skip to end
+                $i = strpos($data, ';', $i);
+                if ($i === false) {
+                    return null;
+                }
+                break;
+            default:
+                /* any other elements are not wanted */
+                return null;
+        }
+    }
+
+    // check unterminated arrays
+    if ($depth > 0) {
+        return null;
+    }
+
+    return unserialize($data);
+}
 ?>

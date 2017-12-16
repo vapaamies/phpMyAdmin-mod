@@ -1407,7 +1407,7 @@ class PMA_Table
 
         // Read from phpMyAdmin database
         $sql_query = " SELECT `prefs` FROM " . $pma_table
-            . " WHERE `username` = '" . $GLOBALS['cfg']['Server']['user'] . "'"
+            . " WHERE `username` = '" . PMA_Util::sqlAddSlashes($GLOBALS['cfg']['Server']['user']) . "'"
             . " AND `db_name` = '" . PMA_Util::sqlAddSlashes($this->db_name) . "'"
             . " AND `table_name` = '" . PMA_Util::sqlAddSlashes($this->name) . "'";
 
@@ -1431,7 +1431,7 @@ class PMA_Table
 
         $username = $GLOBALS['cfg']['Server']['user'];
         $sql_query = " REPLACE INTO " . $pma_table
-            . " VALUES ('" . $username . "', '" . PMA_Util::sqlAddSlashes($this->db_name)
+            . " VALUES ('" . PMA_Util::sqlAddSlashes($username) . "', '" . PMA_Util::sqlAddSlashes($this->db_name)
             . "', '" . PMA_Util::sqlAddSlashes($this->name) . "', '"
             . PMA_Util::sqlAddSlashes(json_encode($this->uiprefs)) . "', NULL)";
 

@@ -110,7 +110,7 @@ function PMA_version_check()
     // from a working server
     $connection_timeout = 3;
 
-    $url = 'http://phpmyadmin.net/home_page/version.php';
+    $url = 'http://phpmyadmin.net/home_page/version.json';
     $context = stream_context_create(
         array(
             'http' => array('timeout' => $connection_timeout)
@@ -146,14 +146,14 @@ function PMA_version_check()
         return;
     }
 
-    /* Format: version\ndate\n(download\n)* */
-    $data_list = explode("\n", $data);
-
-    if (count($data_list) > 1) {
-        $version = $data_list[0];
-        $date = $data_list[1];
+    $data_list = json_decode($data);
+    $releases = $data_list->releases;
+    $latestCompatible = PMA_Util::getLatestCompatibleVersion($releases);
+    if ($latestCompatible != null) {
+        $version = $latestCompatible['version'];
+        $date = $latestCompatible['date'];
     } else {
-        $version = $date = '';
+        return;
     }
 
     $version_upstream = version_to_int($version);
@@ -256,31 +256,6 @@ function version_to_int($version)
 }
 
 /**
- * Checks whether config file is readable/writable
- *
- * @param bool &$is_readable
- * @param bool &$is_writable
- * @param bool &$file_exists
- *
- * @return void
- */
-function check_config_rw(&$is_readable, &$is_writable, &$file_exists)
-{
-    $file_path = ConfigFile::getInstance()->getFilePath();
-    $file_dir = dirname($file_path);
-    $is_readable = true;
-    $is_writable = is_dir($file_dir);
-    if (SETUP_DIR_WRITABLE) {
-        $is_writable = $is_writable && is_writable($file_dir);
-    }
-    $file_exists = file_exists($file_path);
-    if ($file_exists) {
-        $is_readable = is_readable($file_path);
-        $is_writable = $is_writable && is_writable($file_path);
-    }
-}
-
-/**
  * Performs various compatibility, security and consistency checks on current config
  *
  * Outputs results to message list, must be called between messages_begin()
@@ -330,7 +305,7 @@ function perform_config_checks()
         $server_name = htmlspecialchars($server_name);
 
         if ($cookie_auth_server && $blowfish_secret === null) {
-            $blowfish_secret = uniqid('', true);
+            $blowfish_secret = bin2hex(crypt_random_string(32));
             $blowfish_secret_set = true;
             $cf->set('blowfish_secret', $blowfish_secret);
         }
@@ -419,9 +394,9 @@ function perform_config_checks()
         } else {
             $blowfish_warnings = array();
             // check length
-            if (strlen($blowfish_secret) < 8) {
+            if (strlen($blowfish_secret) < 32) {
                 // too short key
-                $blowfish_warnings[] = __('Key is too short, it should have at least 8 characters.');
+                $blowfish_warnings[] = __('Key is too short, it should have at least 32 characters.');
             }
             // check used characters
             $has_digits = (bool) preg_match('/\d/', $blowfish_secret);

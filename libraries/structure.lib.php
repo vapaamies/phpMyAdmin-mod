@@ -961,7 +961,7 @@ function PMA_getServerSlaveStatus($server_slave_status, $truename)
         foreach ($server_slave_Wild_Do_Table as $db_table) {
             $table_part = PMA_extract_db_or_table($db_table, 'table');
             if (($GLOBALS['db'] == PMA_extract_db_or_table($db_table, 'db'))
-                && (preg_match("@^" . substr($table_part, 0, strlen($table_part) - 1) . "@", $truename))
+                && (preg_match("@^" . preg_quote(substr($table_part, 0, strlen($table_part) - 1)) . "@", $truename))
             ) {
                 $do = true;
             }

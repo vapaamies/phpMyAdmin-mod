@@ -800,7 +800,7 @@ function PMA_detectType($last_cumulative_type, $cell)
  * @return array    array(array $types, array $sizes)
  * @access  public
  *
- * @link http://wiki.phpmyadmin.net/pma/Import
+ * @link https://wiki.phpmyadmin.net/pma/Import
  *
  * @todo    Handle the error case more elegantly
  */
@@ -909,7 +909,7 @@ $import_notice = null;
  * @return void
  * @access  public
  *
- * @link http://wiki.phpmyadmin.net/pma/Import
+ * @link https://wiki.phpmyadmin.net/pma/Import
  */
 function PMA_buildSQL($db_name, &$tables, &$analyses = null,
     &$additional_sql = null, $options = null

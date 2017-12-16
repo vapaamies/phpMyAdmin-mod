@@ -61,12 +61,21 @@ echo $contents;
 <?php
 }
 
+function die_error($e)
+{
+    $contents = "<div class='relyingparty_results'>\n";
+    $contents .= "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>\n";
+    $contents .= "</div class='relyingparty_results'>";
+    show_page($contents);
+    exit;
+}
+
 /* Need to have cookie visible from parent directory */
-session_set_cookie_params(0, '/', '', 0);
+session_set_cookie_params(0, '/', '', true, true);
 /* Create signon session */
 $session_name = 'SignonSession';
 session_name($session_name);
-session_start();
+@session_start();
 
 // Determine realm and return_to
 $base = 'http';
@@ -96,9 +105,9 @@ OpenID: <input type="text" name="identifier"/><br>
 }
 
 /* Grab identifier */
-if (isset($_POST['identifier'])) {
+if (isset($_POST['identifier']) && is_string($_POST['identifier'])) {
     $identifier = $_POST['identifier'];
-} else if (isset($_SESSION['identifier'])) {
+} else if (isset($_SESSION['identifier']) && is_string($_SESSION['identifier'])) {
     $identifier = $_SESSION['identifier'];
 } else {
     $identifier = null;
@@ -107,24 +116,16 @@ if (isset($_POST['identifier'])) {
 /* Create OpenID object */
 try {
     $o = new OpenID_RelyingParty($returnTo, $realm, $identifier);
-} catch (OpenID_Exception $e) {
-    $contents = "<div class='relyingparty_results'>\n";
-    $contents .= "<pre>" . $e->getMessage() . "</pre>\n";
-    $contents .= "</div class='relyingparty_results'>";
-    show_page($contents);
-    exit;
+} catch (Exception $e) {
+    die_error($e);
 }
 
 /* Redirect to OpenID provider */
 if (isset($_POST['start'])) {
     try {
         $authRequest = $o->prepare();
-    } catch (OpenID_Exception $e) {
-        $contents = "<div class='relyingparty_results'>\n";
-        $contents .= "<pre>" . $e->getMessage() . "</pre>\n";
-        $contents .= "</div class='relyingparty_results'>";
-        show_page($contents);
-        exit;
+    } catch (Exception $e) {
+        die_error($e);
     }
 
     $url = $authRequest->getAuthorizeURL();
@@ -141,7 +142,11 @@ if (isset($_POST['start'])) {
     }
 
     /* Check reply */
-    $message = new OpenID_Message($queryString, OpenID_Message::FORMAT_HTTP);
+    try {
+        $message = new OpenID_Message($queryString, OpenID_Message::FORMAT_HTTP);
+    } catch (Exception $e) {
+        die_error($e);
+    }
 
     $id = $message->get('openid.claimed_id');
 

@@ -12,7 +12,11 @@
  */
 require './lib/common.inc.php';
 
-$page = filter_input(INPUT_GET, 'page');
+if (file_exists(CONFIG_FILE)) {
+    PMA_fatalError(__('Configuration already exists, setup is disabled!'));
+}
+
+$page = PMA_isValid($_GET['page'], 'scalar') ? $_GET['page'] : null;
 $page = preg_replace('/[^a-z]/', '', $page);
 if ($page === '') {
     $page = 'index';
@@ -23,7 +27,7 @@ if (!file_exists("./setup/frames/$page.inc.php")) {
 }
 
 // Handle done action info
-$action_done = filter_input(INPUT_GET, 'action_done');
+$action_done = PMA_isValid($_GET['action_done'], 'scalar') ? $_GET['action_done'] : null;
 $action_done = preg_replace('/[^a-z_]/', '', $action_done);
 
 PMA_noCacheHeader();

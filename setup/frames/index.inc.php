@@ -40,36 +40,26 @@ if (isset($_GET['version_check'])) {
 perform_config_checks();
 
 //
-// Check whether we can read/write configuration
-//
-$config_readable = false;
-$config_writable = false;
-$config_exists = false;
-check_config_rw($config_readable, $config_writable, $config_exists);
-if (!$config_writable || !$config_readable) {
-    messages_set(
-        'error', 'config_rw', __('Cannot load or save configuration'),
-        PMA_lang(__('Please create web server writable folder [em]config[/em] in phpMyAdmin top level directory as described in [doc@setup_script]documentation[/doc]. Otherwise you will be only able to download or display it.'))
-    );
-}
-//
 // Check https connection
 //
 $is_https = !empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on';
 if (!$is_https) {
     $text = __('You are not using a secure connection; all data (including potentially sensitive information, like passwords) is transferred unencrypted!');
 
-    if (!empty($_SERVER['REQUEST_URI']) && !empty($_SERVER['HTTP_HOST'])) {
-        $link = 'https://' . htmlspecialchars($_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-        $strInsecureConnectionMsg2 = __('If your server is also configured to accept HTTPS requests follow [a@%s]this link[/a] to use a secure connection.');
-        $strInsecureConnectionMsg2 = sprintf($strInsecureConnectionMsg2, $link);
-        $text .= ' ' . PMA_lang($strInsecureConnectionMsg2);
-    }
+    $text .= ' <a href="#" onclick="window.location.href = \'https:\' + window.location.href.substring(window.location.protocol.length);">';
+
+    // Temporary workaround to use tranlated message in older releases
+    $text .= str_replace(
+        array('[a@%s]', '[/a]'),
+        array('', ''),
+        __('If your server is also configured to accept HTTPS requests follow [a@%s]this link[/a] to use a secure connection.')
+    );
+    $text .= '</a>';
     messages_set('notice', 'no_https', __('Insecure connection'), $text);
 }
 ?>
 
-<form id="select_lang" method="post" action="<?php echo htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
+<form id="select_lang" method="post">
     <?php echo PMA_generate_common_hidden_inputs() ?>
     <bdo lang="en" dir="ltr"><label for="lang">
     <?php echo __('Language') . (__('Language') != 'Language' ? ' - Language' : '') ?>
@@ -97,6 +87,20 @@ case 'config_saved':
     messages_set(
         'notice', uniqid('config_saved'), __('Configuration saved.'),
         PMA_lang(__('Configuration saved to file config/config.inc.php in phpMyAdmin top level directory, copy it to top level one and delete directory config to use it.'))
+    );
+    break;
+case 'config_not_saved':
+    /* Use uniqid to display this message every time configuration is saved */
+    PMA_messagesSet(
+        'notice', uniqid('config_not_saved'), __('Configuration not saved!'),
+        PMA_sanitize(
+            __(
+                'Please create web server writable folder [em]config[/em] in '
+                . 'phpMyAdmin top level directory as described in '
+                . '[doc@setup_script]documentation[/doc]. Otherwise you will be '
+                . 'only able to download or display it.'
+            )
+        )
     );
     break;
 default:
@@ -144,8 +148,8 @@ PMA_displayFormTop(
     <td><?php echo htmlspecialchars($cf->getServerDSN($id)) ?></td>
     <td style="white-space: nowrap">
         <small>
-        <a href="<?php echo "?page=servers{$separator}mode=edit{$separator}id=$id" ?>"><?php echo __('Edit') ?></a>
-        | <a href="<?php echo "?page=servers{$separator}mode=remove{$separator}id=$id" ?>"><?php echo __('Delete') ?></a>
+        <a href="<?php echo "?" . PMA_generate_common_url() . $separator . "page=servers{$separator}mode=edit{$separator}id=$id" ?>"><?php echo __('Edit') ?></a>
+        | <a href="<?php echo "?" . PMA_generate_common_url() . $separator . "page=servers{$separator}mode=remove{$separator}id=$id" ?>"><?php echo __('Delete') ?></a>
         </small>
     </td>
 </tr>
@@ -243,20 +247,6 @@ PMA_displayInput(
         <input type="submit" name="submit_display" value="<?php echo __('Display') ?>"/>
         <input type="submit" name="submit_download" value="<?php echo __('Download') ?>"/>
         &nbsp; &nbsp;
-        <input type="submit" name="submit_save" value="<?php echo __('Save') ?>"<?php
-if (!$config_writable) {
-    echo ' disabled="disabled"';
-} ?>/>
-        <input type="submit" name="submit_load" value="<?php echo __('Load') ?>"<?php
-if (!$config_exists) {
-    echo ' disabled="disabled"';
-} ?>/>
-        <input type="submit" name="submit_delete" value="<?php echo __('Delete')
-        ?>"<?php
-if (!$config_exists || !$config_writable) {
-    echo ' disabled="disabled"';
-} ?>/>
-        &nbsp; &nbsp;
         <input type="submit" name="submit_clear" value="<?php echo __('Clear')
         ?>" class="red"/>
     </td>
@@ -267,8 +257,8 @@ PMA_displayFormBottom();
 ?>
 </fieldset>
 <div id="footer">
-    <a href="http://phpmyadmin.net"><?php echo __('phpMyAdmin homepage') ?></a>
-    <a href="http://sourceforge.net/donate/index.php?group_id=23067"><?php
+    <a href="../url.php?url=https://www.phpmyadmin.net/"><?php echo __('phpMyAdmin homepage') ?></a>
+    <a href="../url.php?url=https://www.phpmyadmin.net/donate/"><?php
     echo __('Donate') ?></a>
     <a href="?version_check=1<?php
     echo "{$separator}token="
