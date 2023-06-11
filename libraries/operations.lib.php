@@ -893,7 +893,7 @@ function PMA_getTableOptionFieldset($comment, $tbl_collation,
     ) {
         $html_output .= '<tr><td>'
             . '<label for="auto_increment_opt">AUTO_INCREMENT</label></td>'
-            . '<td><input type="text" name="new_auto_increment" '
+            . '<td><input type="number" name="new_auto_increment" '
             . 'id="auto_increment_opt"'
             . 'value="' . $auto_increment . '"/></td>'
             . '</tr> ';
