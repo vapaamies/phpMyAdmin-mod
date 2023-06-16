@@ -14,8 +14,9 @@ if (! defined('PMA_MINIMUM_COMMON') && ! defined('TESTSUITE')) {
 }
 ?>
 .CodeMirror {
-  line-height: 1em;
+  line-height: 1.3em;
   font-family: monospace;
+  font-size: 1.2em;
   background: #fff;
   border: 1px solid #000;
   /* Necessary so the scrollbar can be absolutely positioned within the wrapper on Lion. */
