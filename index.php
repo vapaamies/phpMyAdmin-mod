@@ -314,7 +314,7 @@ if ($GLOBALS['cfg']['VersionCheck']
     $class = 'jsversioncheck';
 }
 PMA_printListItem(
-    __('Version information') . ': ' . PMA_VERSION,
+    __('Version information') . ': ' . PMA_VERSION . '<a href="//pma.cantor.systems" target="_blank">+</a>',
     'li_pma_version',
     null,
     null,
