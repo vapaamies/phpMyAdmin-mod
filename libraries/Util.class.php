@@ -1716,13 +1716,12 @@ class PMA_Util
             /* l10n: Short week day name */
             __('Sat'));
 
-        if ($format == '') {
-            /* l10n: See http://www.php.net/manual/en/function.strftime.php */
-            $format = __('%B %d, %Y at %I:%M %p');
-        }
-
         if ($timestamp == -1) {
             $timestamp = time();
+        }
+
+        if ($format == '') {
+            return date('Y-m-d H:i P', $timestamp);
         }
 
         $date = preg_replace(
