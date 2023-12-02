@@ -427,15 +427,15 @@ class Advisor
                     continue; // Empty lines are ok
                 }
                 // Non tabbed lines are not
-                if ($line[0] != "\t") {
+                if (!preg_match('/^\s+/', $line)) {
                     $errors[] = sprintf(
-                        __('Unexpected character on line %1$s. Expected tab, but found "%2$s"'),
+                        __('Unexpected character on line %1$s. Expected tab or space, but found "%2$s"'),
                         $i + 1,
                         $line[0]
                     );
                     continue;
                 }
-                $rules[$ruleNo][$ruleSyntax[$ruleLine]] = chop(substr($line, 1));
+                $rules[$ruleNo][$ruleSyntax[$ruleLine]] = trim($line);
                 $lines[$ruleNo][$ruleSyntax[$ruleLine]] = $i + 1;
                 $ruleLine += 1;
             }
