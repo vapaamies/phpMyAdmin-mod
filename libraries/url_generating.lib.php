@@ -283,7 +283,7 @@ function PMA_get_arg_separator($encode = 'none')
         if (strpos($php_arg_separator_input, ';') !== false) {
             $separator = ';';
         } elseif (strlen($php_arg_separator_input) > 0) {
-            $separator = $php_arg_separator_input{0};
+            $separator = $php_arg_separator_input[0];
         } else {
             $separator = '&';
         }

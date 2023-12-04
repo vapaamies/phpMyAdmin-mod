@@ -2663,7 +2663,7 @@ function PMA_deleteUser($queries)
         }
         $drop_user_error = '';
         foreach ($queries as $sql_query) {
-            if ($sql_query{0} != '#') {
+            if ($sql_query[0] != '#') {
                 if (! PMA_DBI_try_query($sql_query, $GLOBALS['userlink'])) {
                     $drop_user_error .= PMA_DBI_getError() . "\n";
                 }
