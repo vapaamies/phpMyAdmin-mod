@@ -21,7 +21,7 @@
   function swap($binValue) {
     $result = $binValue{strlen($binValue) - 1};
     for($i = strlen($binValue) - 2; $i >= 0 ; $i--) {
-      $result .= $binValue{$i};
+      $result .= $binValue[$i];
     }
 
     return $result;
