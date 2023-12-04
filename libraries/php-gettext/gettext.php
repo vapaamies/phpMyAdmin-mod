@@ -142,6 +142,9 @@ class gettext_reader {
       return;
 
     /* get original and translations tables */
+    if (!$this->STREAM)
+      return;
+      
     if (!is_array($this->table_originals)) {
       $this->STREAM->seekto($this->originals);
       $this->table_originals = $this->readintarray($this->total * 2);

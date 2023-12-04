@@ -333,7 +333,7 @@ if (isset($_REQUEST['delete'])
 if (isset($_REQUEST['change_copy'])) {
     $tmp_count = 0;
     foreach ($queries as $sql_query) {
-        if ($sql_query{0} != '#') {
+        if ($sql_query[0] != '#') {
             PMA_DBI_query($sql_query);
         }
         // when there is a query containing a hidden password, take it
