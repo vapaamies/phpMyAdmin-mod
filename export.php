@@ -860,7 +860,7 @@ do {
                 'triggers', $export_type,
                 $do_relation, $do_comments, $do_mime, $do_dates
             )) {
-                break 2;
+                break;
             }
         }
         if (! $export_plugin->exportDBFooter($db)) {
