@@ -89,10 +89,11 @@ if ($showtable) {
     // export create options by its name as variables into global namespace
     // f.e. pack_keys=1 becomes available as $pack_keys with value of '1'
     unset($pack_keys);
+    unset($page_checksum);
     foreach ($create_options as $each_create_option) {
         $each_create_option = explode('=', $each_create_option);
         if (isset($each_create_option[1])) {
-            $$each_create_option[0] = $each_create_option[1];
+            ${$each_create_option[0]} = $each_create_option[1];
         }
     }
     // we need explicit DEFAULT value here (different from '0')
